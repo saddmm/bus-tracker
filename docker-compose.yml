@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mysql-bus-tracker:
+    container_name: mysql-bus-tracker
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bus_tracker
+    expose:
+      - 3306
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-bus-tracker-data:/var/lib/mysql
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql-bus-tracker
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: root
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql-bus-tracker
+
+  redis:
+    image: redis:latest
+    container_name: redis-bus-tracker
+    ports:
+      - "6379:6379"
+    expose:
+      - 6379
+    volumes:
+      - redis-bus-tracker-data:/data
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+
+  
+
+volumes:
+    mysql-bus-tracker-data:
+    redis-bus-tracker-data:
