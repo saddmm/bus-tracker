@@ -7,6 +7,9 @@ import { createServer } from 'http'
 import { expressMiddleware } from '@apollo/server/express4'
 import { apolloServer } from './helper/apollo-server'
 import { schemaHelper } from './helper/schema'
+import { WebSocketServer } from 'ws'
+import { useServer } from 'graphql-ws/use/ws'
+import { redis } from './config/redis'
 
 export const server = async () => {
   const port = process.env.PORT || 4000
@@ -14,10 +17,15 @@ export const server = async () => {
 
   const app = express()
   const httpServer = createServer(app)
-
   const schema = await schemaHelper()
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: '/graphql',
+  })
 
-  const server = await apolloServer(httpServer, schema)
+  const serverCleanup = useServer({ schema }, wsServer)
+
+  const server = await apolloServer(httpServer, schema, serverCleanup)
 
   app.use(express.json())
   app.use(
@@ -36,6 +44,7 @@ export const server = async () => {
   app.use('/graphql', expressMiddleware(server) as unknown as express.RequestHandler)
 
   await AppDataSource.initialize()
+  await redis.connect()
 
   httpServer.listen(port, () => {
     console.log(`🚀 Server ready at http://localhost:${process.env.PORT || 4000}/graphql`)

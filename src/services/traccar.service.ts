@@ -1,20 +1,13 @@
-import { pubSub } from '@/helper/pubsub'
+import { redis } from '@/config/redis'
+import { pubSub } from '@/helper/schema'
+import type { Device, DevicePosition } from '@/object/device.object'
 import axios, { type AxiosInstance } from 'axios'
 import { injectable } from 'tsyringe'
 import WebSocket from 'ws'
 
-interface TraccarPosition {
-  deviceId: number
-  latitude: number
-  longitude: number
-  speed: number
-  serverTime: number
-  timestamp: Date
-}
-
 interface TraccarWebSocketMessage {
-  positions: TraccarPosition[]
-  devices: any[]
+  positions: DevicePosition[]
+  devices: Device[]
   events: any[]
 }
 
@@ -57,22 +50,57 @@ export class TraccarService {
   }
 
   private async handleWebSocketMessage(message: TraccarWebSocketMessage): Promise<void> {
-    if (message.positions.length > 0) {
-      let devicePosition
-      for (const position of message.positions) {
-        devicePosition = {
-          deviceId: position.deviceId,
-          latitude: position.latitude,
-          longitude: position.longitude,
-          speed: position.speed,
-          serverTime: position.serverTime,
-          timestamp: new Date(),
-        }
-      }
-      await pubSub.publish(`POSITION_UPDATE`, devicePosition)
+    // const deviceMap = message.devices.reduce<DeviceMap>((map, device) => {
+    //   map[device.id] = device
 
-      console.log(`Position update: ${devicePosition}`)
-    }
+    //   return map
+    // }, {})
+
+    // const devicePositions: DevicePosition[] = []
+    // for (const position of message.positions) {
+    //   const matchDevice = deviceMap[position.deviceId]
+    //   const devicePosition = {
+    //     id: matchDevice!.id,
+    //     deviceId: position.deviceId,
+    //     name: matchDevice?.name,
+    //     uniqueId: matchDevice?.uniqueId,
+    //     latitude: position.latitude,
+    //     longitude: position.longitude,
+    //     speed: position.speed,
+    //     serverTime: position.serverTime,
+    //     timestamp: new Date().toISOString(),
+    //   }
+    //   devicePositions.push(devicePosition)
+    // }
+    const devicePositions = message.positions
+    const multi = redis.multi()
+    devicePositions.forEach(item => {
+      const key = `position:${item.deviceId}`
+
+      multi.HSET(key, item as any)
+      multi.sAdd(`positions:all`, item.deviceId.toString())
+    })
+    await multi.exec()
+    pubSub.publish(`POSITION_UPDATE`, devicePositions)
+
+    console.log(`atas: ${devicePositions}`)
+    console.log(`Position update: ${devicePositions}`)
+  }
+
+  private async handleDeviceUpdate(message: TraccarWebSocketMessage): Promise<void> {
+    const { devices } = message
+
+    // const positionsMap = new Map(positions.map(pos => [pos.deviceId, pos]))
+
+    // devices.forEach(device => {
+    //   const positionData = positionsMap.get(device.id)
+    //   if (positionData) {
+    //     device.position = positionData
+    //   }
+    // })
+    pubSub.publish(`DEVICE_UPDATE`, devices)
+    console.log(`Device: ${devices}`)
+    console.log(`Tidak ada positions`)
   }
 
   async connectToWebSocket(): Promise<void> {
@@ -93,6 +121,8 @@ export class TraccarService {
     })
     ws.on('message', data => {
       const message = JSON.parse(data.toString())
+      this.handleWebSocketMessage(message)
+      this.handleDeviceUpdate(message)
       console.log('Received data:', message)
     })
   }
