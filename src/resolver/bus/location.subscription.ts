@@ -2,7 +2,6 @@ import { manageAsyncIterator } from '@/helper/manageAsyncIterator'
 import { Device } from '@/object/device.object'
 import { DevicePosition } from '@/object/device.object'
 import { TraccarService } from '@/services/traccar.service'
-import type { PubSub } from 'graphql-yoga'
 import { container, inject, injectable } from 'tsyringe'
 import { Query, Resolver, Root, Subscription } from 'type-graphql'
 
@@ -12,9 +11,6 @@ export class LocationResolver {
   constructor(
     @inject(TraccarService)
     private readonly traccarService: TraccarService,
-
-    @inject('PubSub')
-    private readonly pubSub: PubSub<any>,
   ) {}
 
   @Query(() => [DevicePosition])

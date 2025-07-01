@@ -1,4 +1,3 @@
-import { redis } from '@/config/redis'
 import { pubSub } from '@/helper/pubsub'
 import type { Device, DevicePosition } from '@/object/device.object'
 import axios, { type AxiosInstance } from 'axios'
@@ -58,10 +57,7 @@ export class TraccarService {
   }
 
   private async handlePositionsUpdate(message: TraccarWebSocketMessage): Promise<void> {
-    const deviceIds = await redis.sMembers('devices:all')
-    const allKeys = deviceIds.map(id => `device:${id}`)
-    const allDataStrings = await redis.mGet(allKeys)
-    const devices = allDataStrings.map(data => JSON.parse(data || '{}') as Device)
+    const devices = await this.busService.getBusDevices()
 
     const deviceMap = devices.reduce<DeviceMap>((map, device) => {
       map[device.id] = device

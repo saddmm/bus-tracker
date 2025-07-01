@@ -1,27 +1,27 @@
-import { redis } from '@/config/redis'
 import type { Device, DevicePosition } from '@/object/device.object'
+import { inject, injectable } from 'tsyringe'
+import { RedisService } from './redis.service'
 
+@injectable()
 export class BusService {
-  constructor() {}
+  constructor(
+    @inject(RedisService)
+    private readonly redisService: RedisService,
+  ) {}
 
   async addBusLocations(positions: DevicePosition[]) {
-    const multi = redis.multi()
-    positions.forEach(item => {
-      const key = `position:${item.id}`
-      multi.SET(key, JSON.stringify(item))
-      multi.SADD(`positions:all`, item.id!.toString())
-    })
-    await multi.exec()
+    this.redisService.setAll('positions:all', positions)
   }
 
   async addBus(devices: Device[]) {
-    const multi = redis.multi()
-    devices.forEach(item => {
-      const key = `device:${item.id}`
+    this.redisService.setAll('devices:all', devices)
+  }
 
-      multi.SET(key, JSON.stringify(item))
-      multi.SADD(`devices:all`, item.id.toString())
-    })
-    await multi.exec()
+  async getBusDevices() {
+    await this.redisService.getAll('devices:all')
+  }
+
+  async getBusLocations() {
+    await this.redisService.getAll('positions:all')
   }
 }
