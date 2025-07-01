@@ -27,16 +27,16 @@ export class Device {
 @ObjectType()
 export class DevicePosition {
   @Field(() => Float)
-  id!: number
+  id?: number
 
   @Field(() => Float)
-  deviceId!: number
+  deviceId?: number
 
   @Field(() => Float)
-  latitude!: number
+  latitude?: number
 
   @Field(() => Float)
-  longitude!: number
+  longitude?: number
 
   @Field(() => Float)
   speed?: number

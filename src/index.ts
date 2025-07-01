@@ -10,10 +10,15 @@ import { schemaHelper } from './helper/schema'
 import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/use/ws'
 import { redis } from './config/redis'
+import { container } from 'tsyringe'
+import { TraccarService } from './services/traccar.service'
+import { pubSub } from './helper/pubsub'
+import type { MyContext } from './types/myContext'
 
 export const server = async () => {
   const port = process.env.PORT || 4000
   console.log('Starting server...')
+  container.register('PubSub', { useValue: pubSub })
 
   const app = express()
   const httpServer = createServer(app)
@@ -23,7 +28,12 @@ export const server = async () => {
     path: '/graphql',
   })
 
-  const serverCleanup = useServer({ schema }, wsServer)
+  const serverCleanup = useServer(
+    {
+      schema,
+    },
+    wsServer,
+  )
 
   const server = await apolloServer(httpServer, schema, serverCleanup)
 
@@ -41,7 +51,18 @@ export const server = async () => {
     next()
   })
 
-  app.use('/graphql', expressMiddleware(server) as unknown as express.RequestHandler)
+  app.use(
+    '/graphql',
+    expressMiddleware(server, {
+      context: async () => {
+        return {
+          pubSub: container.resolve('PubSub'),
+          traccarService: container.resolve(TraccarService),
+          container: container,
+        } as MyContext
+      },
+    }) as unknown as express.RequestHandler,
+  )
 
   await AppDataSource.initialize()
   await redis.connect()
