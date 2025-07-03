@@ -25,4 +25,13 @@ export class RedisService {
 
     return result
   }
+
+  async get(key: string, id: string): Promise<any> {
+    const data = await redis.get(`${key}:${id}`)
+    if (!data) {
+      return null
+    }
+
+    return JSON.parse(data)
+  }
 }

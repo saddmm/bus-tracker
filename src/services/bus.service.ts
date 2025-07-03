@@ -28,4 +28,10 @@ export class BusService {
 
     return result || []
   }
+
+  async getBusLocationById(id: string): Promise<DevicePosition | null> {
+    const result = await this.redisService.get('position', id)
+
+    return result || null
+  }
 }

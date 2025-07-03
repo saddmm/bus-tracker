@@ -1,5 +1,5 @@
-import { BusResolver } from '@/resolver/bus/bus.resolver'
-import { LocationResolver } from '@/resolver/bus/location.subscription.resolver'
+import { BusQueriesResolver } from '@/resolver/bus/bus.queries.resolver'
+import { LocationResolver } from '@/resolver/bus/bus.subscription.resolver'
 import { container } from 'tsyringe'
 import { buildSchema } from 'type-graphql'
 import { pubSub } from './pubsub'
@@ -11,7 +11,7 @@ import { StopQueriesResolver } from '@/resolver/stop/stop.queries.resolver'
 export const schemaHelper = () => {
   return buildSchema({
     resolvers: [
-      BusResolver,
+      BusQueriesResolver,
       LocationResolver,
       RouteMutationResolver,
       RouteQueriesResolver,
