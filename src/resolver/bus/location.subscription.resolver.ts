@@ -1,6 +1,6 @@
 import { manageAsyncIterator } from '@/helper/manageAsyncIterator'
-import { Device } from '@/object/device.object'
-import { DevicePosition } from '@/object/device.object'
+import { Device } from '@/types/object/device.object'
+import { DevicePosition } from '@/types/object/device.object'
 import { TraccarService } from '@/services/traccar.service'
 import { container, inject, injectable } from 'tsyringe'
 import { Query, Resolver, Root, Subscription } from 'type-graphql'

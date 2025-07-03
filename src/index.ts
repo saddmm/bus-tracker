@@ -9,11 +9,11 @@ import { apolloServer } from './helper/apollo-server'
 import { schemaHelper } from './helper/schema'
 import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/use/ws'
-import { redis } from './config/redis'
 import { container } from 'tsyringe'
 import { TraccarService } from './services/traccar.service'
 import { pubSub } from './helper/pubsub'
 import type { MyContext } from './types/myContext'
+import { redis } from './config/redis'
 
 export const server = async () => {
   const port = process.env.PORT || 4000
@@ -65,7 +65,9 @@ export const server = async () => {
   )
 
   await AppDataSource.initialize()
-  await redis.connect()
+  await redis.connect().catch((err: Error) => {
+    console.error('Failed to connect to Redis:', err)
+  })
 
   httpServer.listen(port, () => {
     console.log(`🚀 Server ready at http://localhost:${process.env.PORT || 4000}/graphql`)

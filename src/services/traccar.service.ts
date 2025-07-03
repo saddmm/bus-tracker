@@ -1,5 +1,5 @@
 import { pubSub } from '@/helper/pubsub'
-import type { Device, DevicePosition } from '@/object/device.object'
+import type { Device, DevicePosition } from '@/types/object/device.object'
 import axios, { type AxiosInstance } from 'axios'
 import { inject, injectable } from 'tsyringe'
 import WebSocket from 'ws'

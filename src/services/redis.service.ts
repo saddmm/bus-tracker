@@ -1,41 +1,31 @@
-import { createClient } from 'redis'
+import { redis } from '@/config/redis'
 import 'dotenv/config'
 
 export class RedisService {
-  private client: any
-
-  constructor() {
-    this.client = createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379',
-    })
-
-    this.client.on('error', (err: Error) => {
-      console.error('Redis Client Error', err)
-    })
-
-    this.client.connect().catch((err: Error) => {
-      console.error('Failed to connect to Redis:', err)
-    })
-  }
-
   async setAll(key: string, values: any[]): Promise<void> {
-    const multi = this.client.multi()
+    const multi = redis.multi()
     values.forEach((value: any) => {
       const keys = `${key}:${value.id}`
-      multi.SET(keys, JSON.stringify(value))
-      multi.SADD(key, value.id.toString())
+      multi.set(keys, JSON.stringify(value))
+      multi.sAdd(`${key}s:all`, value.id.toString())
     })
 
-    return await multi.exec()
+    await multi.exec()
   }
 
-  async getAll(key: string): Promise<string | null> {
-    const allKeys = await this.client.SMEMBERS(`${key}:all`)
-    if (allKeys.length === 0) {
+  async getAll(key: string): Promise<any[] | null> {
+    const ids = await redis.SMEMBERS(`${key}s:all`)
+    console.log('AllKeys', ids)
+    if (ids.length === 0) {
       return null
     }
-    const allDataStrings = await this.client.mGet(allKeys)
+    const allKeys = ids.map(id => `${key}:${id}`)
+    const allDataStrings = await redis.mGet(allKeys)
+    console.log(allDataStrings)
 
-    return allDataStrings.map((data: any) => JSON.parse(data || '{}'))
+    const result = allDataStrings.map((data: any) => JSON.parse(data || '{}'))
+    console.log('getAll:', result)
+
+    return result
   }
 }

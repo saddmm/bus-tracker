@@ -9,9 +9,8 @@ import {
   PrimaryGeneratedColumn,
   type Relation,
 } from 'typeorm'
-import { LocationEntity } from './location.entity'
 import { Bus } from './bus.entity'
-import { Route } from './route.entity'
+import { LongLat, Route } from './route.entity'
 
 @ObjectType()
 @Entity('stops')
@@ -24,9 +23,9 @@ export class Stop extends BaseEntity {
   @Column({ type: 'varchar', unique: true })
   name!: string
 
-  @Field(() => LocationEntity)
-  @ManyToOne(() => LocationEntity)
-  location!: Relation<LocationEntity>
+  @Field(() => LongLat)
+  @Column({ type: 'json' })
+  location!: LongLat
 
   @Field(() => Boolean)
   @Column({ type: 'boolean', default: true })
@@ -37,8 +36,7 @@ export class Stop extends BaseEntity {
   @JoinTable()
   buses?: Relation<Bus[]>
 
-  @Field(() => [Route], { nullable: true })
-  @ManyToMany(() => Route, route => route.stops)
-  @JoinTable()
-  routes?: Relation<Route[]>
+  @Field(() => Route, { nullable: true })
+  @ManyToOne(() => Route, route => route.stops)
+  route?: Relation<Route>
 }
