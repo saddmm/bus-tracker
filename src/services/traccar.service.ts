@@ -1,18 +1,14 @@
-import { pubSub } from '@/helper/pubsub'
 import type { Device, DevicePosition } from '@/types/object/device.object'
 import axios, { type AxiosInstance } from 'axios'
 import { inject, injectable } from 'tsyringe'
 import WebSocket from 'ws'
 import { BusService } from './bus.service'
+import type { Producer } from 'kafkajs'
 
 interface TraccarWebSocketMessage {
   positions: DevicePosition[]
   devices: Device[]
   events: any[]
-}
-
-interface DeviceMap {
-  [key: number]: Device
 }
 
 @injectable()
@@ -24,6 +20,9 @@ export class TraccarService {
   constructor(
     @inject(BusService)
     private readonly busService: BusService,
+
+    @inject('KafkaProducer')
+    private readonly kafkaProducer: Producer,
   ) {
     this.axiosInstance = axios.create({
       baseURL: `http://${process.env.TRACCAR_BASE_URL}/api`,
@@ -57,43 +56,30 @@ export class TraccarService {
   }
 
   private async handlePositionsUpdate(message: TraccarWebSocketMessage): Promise<void> {
-    const devices = await this.busService.getBusDevices()
+    if (!message.positions) {
+      console.warn('No positions found in the message')
 
-    const deviceMap = devices.reduce<DeviceMap>((map, device) => {
-      map[device.id] = device
-
-      return map
-    }, {})
-
-    const devicePositions: DevicePosition[] = []
-
-    for (const position of message.positions) {
-      const matchDevice = deviceMap[position.deviceId!]
-      const devicePosition = {
-        id: matchDevice?.id || position.deviceId,
-        name: matchDevice?.name || '',
-        uniqueId: matchDevice?.uniqueId || '',
-        status: matchDevice?.status || '',
-        lastUpdate: matchDevice?.lastUpdate || new Date(),
-        category: matchDevice?.category || '',
-        position: {
-          ...position,
-          timestamp: new Date().toISOString(),
-        },
-      }
-      devicePositions.push(devicePosition)
+      return
     }
-    await this.busService.addBusLocations(devicePositions)
-    pubSub.publish(`POSITION_UPDATE`, devicePositions)
+
+    await this.kafkaProducer.connect()
+
+    message.positions.forEach(position => {
+      this.kafkaProducer
+        .send({
+          topic: 'POSITION_UPDATE',
+          messages: [{ value: JSON.stringify(position) }],
+        })
+        .catch(error => {
+          console.error('Error sending position to Kafka:', error)
+        })
+    })
   }
 
   private async handleDeviceUpdate(message: TraccarWebSocketMessage): Promise<void> {
     const { devices } = message
 
     await this.busService.addBus(devices)
-
-    pubSub.publish(`DEVICE_UPDATE`, devices)
-    console.log(`Device: ${devices}`)
   }
 
   async connectToWebSocket(): Promise<void> {

@@ -6,6 +6,7 @@ import { pubSub } from './pubsub'
 import { RouteMutationResolver } from '@/resolver/route/route.mutation.resolver'
 import { RouteQueriesResolver } from '@/resolver/route/route.queries.resolver'
 import { StopMutationResolver } from '@/resolver/stop/stop.mutations.resolver'
+import { StopQueriesResolver } from '@/resolver/stop/stop.queries.resolver'
 
 export const schemaHelper = () => {
   return buildSchema({
@@ -15,6 +16,7 @@ export const schemaHelper = () => {
       RouteMutationResolver,
       RouteQueriesResolver,
       StopMutationResolver,
+      StopQueriesResolver,
     ],
     pubSub: pubSub as any,
     container: {

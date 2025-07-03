@@ -1,9 +1,11 @@
-import { manageAsyncIterator } from '@/helper/manageAsyncIterator'
+// import { manageAsyncIterator } from '@/helper/manageAsyncIterator'
 import { Device } from '@/types/object/device.object'
 import { DevicePosition } from '@/types/object/device.object'
 import { TraccarService } from '@/services/traccar.service'
-import { container, inject, injectable } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 import { Query, Resolver, Root, Subscription } from 'type-graphql'
+import { pubSub } from '@/helper/pubsub'
+// import { pubSub } from '@/helper/pubsub'
 
 @injectable()
 @Resolver(DevicePosition)
@@ -19,19 +21,20 @@ export class LocationResolver {
   }
 
   @Subscription(() => [Device], {
-    subscribe: () => {
-      const traccarService = container.resolve(TraccarService)
+    subscribe: () => pubSub.asyncIterableIterator('POSITION_UPDATE'),
+    // subscribe: () => {
+    // const traccarService = container.resolve(TraccarService)
 
-      return manageAsyncIterator<Device[]>('POSITION_UPDATE', {
-        onStart: async () => {
-          await traccarService.connectToWebSocket()
-        },
-        onStop: async () => {
-          await traccarService.stopWebSocket()
-          console.log('Stopping position updates subscription')
-        },
-      })
-    },
+    // return manageAsyncIterator<Device[]>('POSITION_UPDATE', {
+    //   onStart: async () => {
+    //     await traccarService.connectToWebSocket()
+    //   },
+    //   onStop: async () => {
+    //     await traccarService.stopWebSocket()
+    //     console.log('Stopping position updates subscription')
+    //   },
+    // })
+    // },
   })
   positionUpdate(@Root() devices: Device[]): Device[] {
     console.log('Managed position update:', devices)

@@ -15,16 +15,13 @@ export class RedisService {
 
   async getAll(key: string): Promise<any[] | null> {
     const ids = await redis.SMEMBERS(`${key}s:all`)
-    console.log('AllKeys', ids)
     if (ids.length === 0) {
       return null
     }
     const allKeys = ids.map(id => `${key}:${id}`)
     const allDataStrings = await redis.mGet(allKeys)
-    console.log(allDataStrings)
 
     const result = allDataStrings.map((data: any) => JSON.parse(data || '{}'))
-    console.log('getAll:', result)
 
     return result
   }

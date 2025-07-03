@@ -3,5 +3,5 @@ import 'dotenv/config'
 
 export const kafka = new Kafka({
   clientId: 'bus-track',
-  brokers: [process.env.BROKERS!],
+  brokers: ['localhost:9094'],
 })

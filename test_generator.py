@@ -9,7 +9,7 @@ import random
 
 id = '12345678901234'
 server = 'localhost:5055'
-period = 1
+period = 5
 step = 0.001
 device_speed = 40
 driver_id = '123456'

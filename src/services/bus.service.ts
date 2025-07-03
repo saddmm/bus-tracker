@@ -19,7 +19,6 @@ export class BusService {
 
   async getBusDevices(): Promise<Device[]> {
     const result = await this.redisService.getAll('device')
-    console.log(result)
 
     return result || []
   }

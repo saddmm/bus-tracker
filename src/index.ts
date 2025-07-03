@@ -11,14 +11,30 @@ import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/use/ws'
 import { container } from 'tsyringe'
 import { TraccarService } from './services/traccar.service'
-import { pubSub } from './helper/pubsub'
 import type { MyContext } from './types/myContext'
 import { redis } from './config/redis'
+import type { Consumer, Producer } from 'kafkajs'
+import { kafka } from './config/kafka'
+import { PositionWorkerService } from './services/worker/positionWorker.service'
 
 export const server = async () => {
   const port = process.env.PORT || 4000
   console.log('Starting server...')
-  container.register('PubSub', { useValue: pubSub })
+
+  // Kafka
+  const producer: Producer = kafka.producer()
+  const consumer: Consumer = kafka.consumer({ groupId: 'bus-track-group' })
+  await producer.connect()
+  await consumer.connect()
+
+  container.register<Producer>('KafkaProducer', { useValue: producer })
+  container.register<Consumer>('KafkaConsumer', { useValue: consumer })
+
+  const traccarService = container.resolve(TraccarService)
+  const workerService = container.resolve(PositionWorkerService)
+
+  await workerService.start()
+  await traccarService.connectToWebSocket()
 
   const app = express()
   const httpServer = createServer(app)
