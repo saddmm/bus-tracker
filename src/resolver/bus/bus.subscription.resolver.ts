@@ -15,8 +15,6 @@ export class LocationResolver {
     subscribe: () => pubSub.asyncIterableIterator('POSITION_UPDATE'),
   })
   positionUpdate(@Root() devices: Device[]): Device[] {
-    console.log('Managed position update:', devices)
-
     return devices
   }
 }

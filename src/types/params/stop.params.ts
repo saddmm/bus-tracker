@@ -8,7 +8,4 @@ export class StopParams {
 
   @Field(() => LongLatInput, { nullable: true })
   location?: LongLatInput
-
-  @Field(() => String, { nullable: true })
-  routeId?: string
 }

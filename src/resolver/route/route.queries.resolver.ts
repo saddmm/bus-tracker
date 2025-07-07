@@ -5,9 +5,13 @@ import { Arg, ID, Query, Resolver } from 'type-graphql'
 export class RouteQueriesResolver {
   @Query(() => [Route])
   async routes(): Promise<Route[]> {
-    const routes = await Route.find()
+    const routes = await Route.createQueryBuilder('route')
+      .leftJoinAndSelect('route.routeStops', 'routeStop')
+      .leftJoinAndSelect('routeStop.stop', 'stop')
+      .orderBy('routeStop.sequence', 'ASC')
+      .getMany()
 
-    return routes || []
+    return routes
   }
 
   @Query(() => Route)

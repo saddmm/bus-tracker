@@ -48,6 +48,6 @@ export class ActionRespons {
   @Field(() => String)
   msg!: string
 
-  @Field({ nullable: true })
-  data?: any
+  @Field(() => String, { nullable: true })
+  data?: string | Array<object> | object
 }

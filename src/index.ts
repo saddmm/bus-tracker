@@ -9,32 +9,34 @@ import { apolloServer } from './helper/apollo-server'
 import { schemaHelper } from './helper/schema'
 import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/use/ws'
-import { container } from 'tsyringe'
-import { TraccarService } from './services/traccar.service'
-import type { MyContext } from './types/myContext'
+// import { container } from 'tsyringe'
+// import { TraccarService } from './services/traccar.service'
 import { redis } from './config/redis'
-import type { Consumer, Producer } from 'kafkajs'
-import { kafka } from './config/kafka'
-import { PositionWorkerService } from './services/worker/positionWorker.service'
+// import type { Consumer, Producer } from 'kafkajs'
+// import { kafka } from './config/kafka'
+// import { PositionWorkerService } from './services/worker/positionWorker.service'
 
 export const server = async () => {
   const port = process.env.PORT || 4000
   console.log('Starting server...')
+  await redis.connect().catch((err: Error) => {
+    console.error('Failed to connect to Redis:', err)
+  })
 
   // Kafka
-  const producer: Producer = kafka.producer()
-  const consumer: Consumer = kafka.consumer({ groupId: 'bus-track-group' })
-  await producer.connect()
-  await consumer.connect()
+  // const producer: Producer = kafka.producer()
+  // const consumer: Consumer = kafka.consumer({ groupId: 'bus-track-group' })
+  // await producer.connect()
+  // await consumer.connect()
 
-  container.register<Producer>('KafkaProducer', { useValue: producer })
-  container.register<Consumer>('KafkaConsumer', { useValue: consumer })
+  // container.register<Producer>('KafkaProducer', { useValue: producer })
+  // container.register<Consumer>('KafkaConsumer', { useValue: consumer })
 
-  const traccarService = container.resolve(TraccarService)
-  const workerService = container.resolve(PositionWorkerService)
+  // const traccarService = container.resolve(TraccarService)
+  // const workerService = container.resolve(PositionWorkerService)
 
-  await workerService.start()
-  await traccarService.connectToWebSocket()
+  // await workerService.start()
+  // await traccarService.connectToWebSocket()
 
   const app = express()
   const httpServer = createServer(app)
@@ -67,23 +69,9 @@ export const server = async () => {
     next()
   })
 
-  app.use(
-    '/graphql',
-    expressMiddleware(server, {
-      context: async () => {
-        return {
-          pubSub: container.resolve('PubSub'),
-          traccarService: container.resolve(TraccarService),
-          container: container,
-        } as MyContext
-      },
-    }) as unknown as express.RequestHandler,
-  )
+  app.use('/graphql', expressMiddleware(server) as unknown as express.RequestHandler)
 
   await AppDataSource.initialize()
-  await redis.connect().catch((err: Error) => {
-    console.error('Failed to connect to Redis:', err)
-  })
 
   httpServer.listen(port, () => {
     console.log(`🚀 Server ready at http://localhost:${process.env.PORT || 4000}/graphql`)

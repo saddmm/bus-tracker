@@ -5,12 +5,13 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
-  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   type Relation,
 } from 'typeorm'
 import { Bus } from './bus.entity'
-import { LongLat, Route } from './route.entity'
+import { LongLat } from '../../types/object/longlat.object'
+import { RouteStop } from './route-stop.entity'
 
 @ObjectType()
 @Entity('stops')
@@ -36,7 +37,7 @@ export class Stop extends BaseEntity {
   @JoinTable()
   buses?: Relation<Bus[]>
 
-  @Field(() => Route, { nullable: true })
-  @ManyToOne(() => Route, route => route.stops)
-  route?: Relation<Route>
+  @Field(() => [RouteStop], { nullable: true })
+  @OneToMany(() => RouteStop, routeStops => routeStops.stop)
+  routeStops?: Relation<RouteStop[]>
 }

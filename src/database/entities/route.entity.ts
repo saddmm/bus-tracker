@@ -1,4 +1,4 @@
-import { Field, Float, ObjectType } from 'type-graphql'
+import { Field, ObjectType } from 'type-graphql'
 import {
   BaseEntity,
   Column,
@@ -8,7 +8,7 @@ import {
   type Relation,
 } from 'typeorm'
 import { Bus } from './bus.entity'
-import { Stop } from './stop.entity'
+import { RouteStop } from './route-stop.entity'
 
 @ObjectType()
 @Entity('routes')
@@ -25,28 +25,19 @@ export class Route extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   polyline!: string
 
-  @Field(() => LongLat)
-  @Column({ type: 'json' })
-  origin!: LongLat
+  // @Field(() => LongLat)
+  // @Column({ type: 'json' })
+  // origin!: LongLat
 
-  @Field(() => LongLat)
-  @Column({ type: 'json' })
-  destination!: LongLat
+  // @Field(() => LongLat)
+  // @Column({ type: 'json' })
+  // destination!: LongLat
 
   @Field(() => [Bus], { nullable: true })
   @OneToMany(() => Bus, bus => bus.route)
   buses?: Relation<Bus[]>
 
-  @Field(() => [Stop], { nullable: true })
-  @OneToMany(() => Stop, stop => stop.route)
-  stops?: Relation<Stop[]>
-}
-
-@ObjectType()
-export class LongLat {
-  @Field(() => Float)
-  longitude?: number
-
-  @Field(() => Float)
-  latitude?: number
+  @Field(() => [RouteStop], { nullable: true })
+  @OneToMany(() => RouteStop, routeStops => routeStops.route)
+  routeStops?: Relation<RouteStop[]>
 }

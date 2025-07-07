@@ -1,6 +1,7 @@
 import { Route } from '@/database/entities/route.entity'
 import { RouteService } from '@/services/route.service'
-import { RouteParams } from '@/types/params/route.param'
+import { StopService } from '@/services/stop.service'
+import { CreateRouteParams, UpdateRouteParams } from '@/types/params/route.param'
 import { inject, injectable } from 'tsyringe'
 import { Args, Mutation, Resolver } from 'type-graphql'
 
@@ -10,23 +11,57 @@ export class RouteMutationResolver {
   constructor(
     @inject(RouteService)
     private readonly routeService: RouteService,
+
+    @inject(StopService)
+    private readonly stopService: StopService,
   ) {}
 
   @Mutation(() => Route)
   async createRoute(
-    @Args(() => RouteParams)
-    { startPoint, endPoint, startLocation, endLocation }: RouteParams,
+    @Args(() => CreateRouteParams)
+    { name, stops }: CreateRouteParams,
   ): Promise<Route> {
-    const name = `${startLocation} - ${endLocation}`
-    const polyline = await this.routeService.createPolyline(startPoint, endPoint)
-    const route = Route.create({
-      name,
-      polyline: polyline,
-      origin: startPoint,
-      destination: endPoint,
-    })
-    await route.save()
+    try {
+      const route = Route.create({
+        name,
+      })
 
-    return route
+      await route.save()
+      if (stops) {
+        if (stops.length < 2) {
+          throw new Error('Tambahkan minimal 2 halte')
+        }
+
+        await this.routeService.updateRoute(route, stops)
+      }
+
+      return route
+    } catch (err: any) {
+      throw new Error(err)
+    }
+  }
+
+  @Mutation(() => Route)
+  async updateRoute(
+    @Args(() => UpdateRouteParams) { id, name, stops }: UpdateRouteParams,
+  ): Promise<Route> {
+    try {
+      const route = await Route.findOneBy({ id })
+      if (!route) {
+        throw new Error('Route Not Found')
+      }
+      if (name) route.name = name
+      if (stops) {
+        if (stops.length < 2) {
+          throw new Error('Tambahkan minimal 2 halte')
+        }
+
+        await this.routeService.updateRoute(route, stops)
+      }
+
+      return route
+    } catch (err: any) {
+      throw new Error(`Error : ${err}`)
+    }
   }
 }
