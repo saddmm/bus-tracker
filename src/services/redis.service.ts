@@ -34,4 +34,11 @@ export class RedisService {
 
     return JSON.parse(data)
   }
+
+  async set(key: string, value: any): Promise<void> {
+    const multi = redis.multi()
+    multi.set(`${key}:${value.id}`, JSON.stringify(value))
+    multi.sAdd(`${key}s:all`, value.id)
+    await multi.exec()
+  }
 }

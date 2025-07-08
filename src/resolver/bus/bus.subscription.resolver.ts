@@ -12,7 +12,7 @@ export class LocationResolver {
   constructor() {}
 
   @Subscription(() => [Device], {
-    subscribe: () => pubSub.asyncIterableIterator('POSITION_UPDATE'),
+    subscribe: () => pubSub.asyncIterator('POSITION_UPDATE'),
   })
   positionUpdate(@Root() devices: Device[]): Device[] {
     return devices

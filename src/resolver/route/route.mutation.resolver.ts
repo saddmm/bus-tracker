@@ -50,10 +50,10 @@ export class RouteMutationResolver {
       if (!route) {
         throw new Error('Route Not Found')
       }
-      route.name ||= name
-      route.operation_day ||= operation_day
-      route.start_hour ||= start_hour
-      route.end_hour ||= end_hour
+      route.name ??= name
+      route.operation_day ??= operation_day
+      route.start_hour ??= start_hour
+      route.end_hour ??= end_hour
       if (stops) {
         if (stops.length < 2) {
           throw new Error('Tambahkan minimal 2 halte')
@@ -64,7 +64,10 @@ export class RouteMutationResolver {
 
       return route
     } catch (err: any) {
-      throw new Error(`Error : ${err}`)
+      throw new Error(
+        'Gagal meng-update rute. Periksa kembali ID halte yang dikirimkan. err: ',
+        err,
+      )
     }
   }
 }
