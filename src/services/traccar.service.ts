@@ -1,9 +1,10 @@
-import type { Device, DevicePosition } from '@/types/object/device.object'
+import type { Device, DeviceParams, DevicePosition } from '@/types/object/device.object'
 import axios, { type AxiosInstance } from 'axios'
 import { inject, injectable } from 'tsyringe'
 import WebSocket from 'ws'
 import { BusService } from './bus.service'
 import type { Producer } from 'kafkajs'
+import type { Bus } from '@/database/entities/bus.entity'
 
 interface TraccarWebSocketMessage {
   positions: DevicePosition[]
@@ -57,12 +58,8 @@ export class TraccarService {
 
   private async handlePositionsUpdate(message: TraccarWebSocketMessage): Promise<void> {
     if (!message.positions) {
-      console.warn('No positions found in the message')
-
       return
     }
-
-    await this.kafkaProducer.connect()
 
     message.positions.forEach(position => {
       this.kafkaProducer
@@ -77,9 +74,25 @@ export class TraccarService {
   }
 
   private async handleDeviceUpdate(message: TraccarWebSocketMessage): Promise<void> {
-    const { devices } = message
+    if (!message.devices) return
+    message.devices.forEach(device => {
+      this.kafkaProducer.send({
+        topic: 'DEVICE',
+        messages: [{ value: JSON.stringify(device) }],
+      })
+    })
+  }
 
-    await this.busService.addBus(devices)
+  async createDevice(devices: DeviceParams): Promise<Bus> {
+    await this.authenticate()
+    await this.axiosInstance.post('/devices', devices)
+    const device = await this.axiosInstance.get('devices', {
+      params: {
+        uniqueId: devices.uniqueId,
+      },
+    })
+
+    return device.data[0]
   }
 
   async connectToWebSocket(): Promise<void> {
@@ -101,13 +114,8 @@ export class TraccarService {
     })
     ws.on('message', data => {
       const message = JSON.parse(data.toString())
-      if (message.devices) {
-        this.handleDeviceUpdate(message)
-      } else if (message.positions) {
-        this.handlePositionsUpdate(message)
-      } else {
-        return
-      }
+      this.handlePositionsUpdate(message)
+      this.handleDeviceUpdate(message)
     })
     ws.on('error', error => {
       console.error('WebSocket error:', error)

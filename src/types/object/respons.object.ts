@@ -1,3 +1,4 @@
+import { Bus } from '@/database/entities/bus.entity'
 import { Stop } from '@/database/entities/stop.entity'
 import type { ClassType } from 'type-graphql'
 import { Field, ObjectType } from 'type-graphql'
@@ -39,6 +40,9 @@ export class StopResponse extends FormatResponse(Stop) {}
 
 @ObjectType()
 export class StopResponses extends FormatResponseList(Stop) {}
+
+@ObjectType()
+export class BusResponse extends FormatResponse(Bus) {}
 
 @ObjectType()
 export class ActionRespons {

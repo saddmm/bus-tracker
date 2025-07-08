@@ -1,4 +1,4 @@
-import { Field, ObjectType } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 import {
   BaseEntity,
   Column,
@@ -25,13 +25,17 @@ export class Route extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   polyline!: string
 
-  // @Field(() => LongLat)
-  // @Column({ type: 'json' })
-  // origin!: LongLat
+  @Field(() => [Int])
+  @Column({ type: 'json', nullable: true })
+  operation_day!: number[]
 
-  // @Field(() => LongLat)
-  // @Column({ type: 'json' })
-  // destination!: LongLat
+  @Field(() => String)
+  @Column({ type: 'time' })
+  start_hour!: string
+
+  @Field(() => String)
+  @Column({ type: 'time' })
+  end_hour!: string
 
   @Field(() => [Bus], { nullable: true })
   @OneToMany(() => Bus, bus => bus.route)

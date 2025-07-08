@@ -7,6 +7,7 @@ import { RouteMutationResolver } from '@/resolver/route/route.mutation.resolver'
 import { RouteQueriesResolver } from '@/resolver/route/route.queries.resolver'
 import { StopMutationResolver } from '@/resolver/stop/stop.mutations.resolver'
 import { StopQueriesResolver } from '@/resolver/stop/stop.queries.resolver'
+import { BusMutationResolver } from '@/resolver/bus/bus.mutation.resolver'
 
 export const schemaHelper = () => {
   return buildSchema({
@@ -17,6 +18,7 @@ export const schemaHelper = () => {
       RouteQueriesResolver,
       StopMutationResolver,
       StopQueriesResolver,
+      BusMutationResolver,
     ],
     pubSub: pubSub as any,
     container: {

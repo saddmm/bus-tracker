@@ -9,12 +9,12 @@ import { apolloServer } from './helper/apollo-server'
 import { schemaHelper } from './helper/schema'
 import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/use/ws'
-// import { container } from 'tsyringe'
-// import { TraccarService } from './services/traccar.service'
+import { container } from 'tsyringe'
+import { TraccarService } from './services/traccar.service'
 import { redis } from './config/redis'
-// import type { Consumer, Producer } from 'kafkajs'
-// import { kafka } from './config/kafka'
-// import { PositionWorkerService } from './services/worker/positionWorker.service'
+import type { Consumer, Producer } from 'kafkajs'
+import { kafka } from './config/kafka'
+import { PositionWorkerService } from './services/worker/positionWorker.service'
 
 export const server = async () => {
   const port = process.env.PORT || 4000
@@ -24,19 +24,19 @@ export const server = async () => {
   })
 
   // Kafka
-  // const producer: Producer = kafka.producer()
-  // const consumer: Consumer = kafka.consumer({ groupId: 'bus-track-group' })
-  // await producer.connect()
-  // await consumer.connect()
+  const producer: Producer = kafka.producer()
+  const consumer: Consumer = kafka.consumer({ groupId: 'bus-track-group' })
+  await producer.connect()
+  await consumer.connect()
 
-  // container.register<Producer>('KafkaProducer', { useValue: producer })
-  // container.register<Consumer>('KafkaConsumer', { useValue: consumer })
+  container.register<Producer>('KafkaProducer', { useValue: producer })
+  container.register<Consumer>('KafkaConsumer', { useValue: consumer })
 
-  // const traccarService = container.resolve(TraccarService)
-  // const workerService = container.resolve(PositionWorkerService)
+  const traccarService = container.resolve(TraccarService)
+  const workerService = container.resolve(PositionWorkerService)
 
-  // await workerService.start()
-  // await traccarService.connectToWebSocket()
+  await workerService.start()
+  await traccarService.connectToWebSocket()
 
   const app = express()
   const httpServer = createServer(app)

@@ -21,7 +21,7 @@ export class Device {
   category?: string
 
   @Field(() => DevicePosition)
-  position!: DevicePosition
+  position?: DevicePosition
 }
 
 @ObjectType()
@@ -46,4 +46,16 @@ export class DevicePosition {
 
   @Field(() => String)
   timestamp?: string
+}
+
+@ObjectType()
+export class DeviceParams {
+  @Field(() => String)
+  name!: string
+
+  @Field(() => String)
+  uniqueId!: string
+
+  @Field(() => String)
+  category!: string
 }
