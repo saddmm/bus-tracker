@@ -12,6 +12,8 @@
   "description": "",
   "dependencies": {
     "@apollo/server": "^4.12.2",
+    "@graphql-yoga/plugin-graphql-sse": "^3.14.0",
+    "@graphql-yoga/redis-event-target": "^3.0.3",
     "@graphql-yoga/subscription": "^5.0.5",
     "axios": "^1.10.0",
     "cors": "^2.8.5",
@@ -27,6 +29,7 @@
     "mysql2": "^3.14.1",
     "redis": "^4.7.1",
     "reflect-metadata": "^0.2.2",
+    "superjson": "^2.2.2",
     "tsyringe": "^4.10.0",
     "type-graphql": "^2.0.0-rc.2",
     "typeorm": "^0.3.25",

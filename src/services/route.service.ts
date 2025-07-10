@@ -1,5 +1,3 @@
-import type { AxiosInstance } from 'axios'
-import axios from 'axios'
 import { inject, injectable } from 'tsyringe'
 import 'dotenv/config'
 import { Route } from '@/database/entities/route.entity'
@@ -10,6 +8,7 @@ import { StopService } from './stop.service'
 import type { RouteWithStop } from '@/types/object/route.object'
 import { RedisService } from './redis.service'
 import type { DevicePosition } from '@/types/object/device.object'
+import { MapsService } from './maps.service'
 
 interface Position {
   latitude: number
@@ -18,36 +17,16 @@ interface Position {
 
 @injectable()
 export class RouteService {
-  private axiosInstance: AxiosInstance
   constructor(
     @inject(StopService)
     private readonly stopService: StopService,
 
     @inject(RedisService)
     private readonly redisService: RedisService,
-  ) {
-    this.axiosInstance = axios.create({
-      baseURL: process.env.GRAPHHOPPER_HOST,
-    })
-  }
 
-  private async createPolyline(locations: any) {
-    try {
-      const response = await this.axiosInstance.post('/route', {
-        points: locations,
-        profile: 'car',
-        locale: 'id',
-        calc_points: true,
-        points_encoded: true,
-      })
-
-      const polyline = response.data.paths[0].points
-
-      return polyline
-    } catch (err: any) {
-      throw new Error(err)
-    }
-  }
+    @inject(MapsService)
+    private readonly mapsService: MapsService,
+  ) {}
 
   private async updateRouteCache(route: Route): Promise<void> {
     const routeData = await this.routeQueryById(route.id)
@@ -118,7 +97,7 @@ export class RouteService {
       desiredStopsWithSeq.sort((a, b) => a.sequence - b.sequence).map(s => s.stopId),
     )
     const locations = finalOrderedStops.map(s => [s.location.longitude, s.location.latitude])
-    const polyline = await this.createPolyline(locations)
+    const polyline = await this.mapsService.createPolyline(locations)
     route.polyline = polyline
     await route.save()
 
@@ -183,26 +162,5 @@ export class RouteService {
     if (!route || !route.stops) return null
 
     const { stops } = route
-    stops.forEach((stop, index) => {
-      const distance = this.getDistance(
-        { latitude: busPosition.latitude!, longitude: busPosition.longitude! },
-        stop.location!,
-      )
-    })
-  }
-
-  private getDistance(pos1: Position, pos2: Position): number {
-    const R = 6371 // Radius Bumi dalam km
-    const dLat = (pos2.latitude - pos1.latitude) * (Math.PI / 180)
-    const dLon = (pos2.longitude - pos1.longitude) * (Math.PI / 180)
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(pos1.latitude * (Math.PI / 180)) *
-        Math.cos(pos2.latitude * (Math.PI / 180)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-
-    return R * c
   }
 }

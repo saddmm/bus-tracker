@@ -13,14 +13,20 @@ export class BusService {
     this.redisService.setAll('position', positions)
   }
 
-  async addBus(devices: Device[]): Promise<void> {
-    this.redisService.setAll('device', devices)
+  async addBus(device: Device): Promise<void> {
+    this.redisService.set('device', device)
   }
 
   async getBusDevices(): Promise<Device[]> {
     const result = await this.redisService.getAll('device')
 
     return result || []
+  }
+
+  async getBus(id: string): Promise<Device> {
+    const result = await this.redisService.get('device', id)
+
+    return result
   }
 
   async getBusLocations(): Promise<DevicePosition[]> {

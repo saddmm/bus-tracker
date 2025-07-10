@@ -35,10 +35,14 @@ export class RedisService {
     return JSON.parse(data)
   }
 
-  async set(key: string, value: any): Promise<void> {
-    const multi = redis.multi()
-    multi.set(`${key}:${value.id}`, JSON.stringify(value))
-    multi.sAdd(`${key}s:all`, value.id)
-    await multi.exec()
+  async set(key: string, value: any): Promise<void | Error> {
+    try {
+      const multi = redis.multi()
+      multi.set(`${key}:${value.id}`, JSON.stringify(value))
+      multi.sAdd(`${key}s:all`, value.id.toString())
+      await multi.exec()
+    } catch (err: any) {
+      throw new Error(`Redis Error: ${err}`)
+    }
   }
 }

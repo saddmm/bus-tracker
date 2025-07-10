@@ -20,7 +20,7 @@ export const schemaHelper = () => {
       StopQueriesResolver,
       BusMutationResolver,
     ],
-    pubSub: pubSub as any,
+    pubSub: pubSub,
     container: {
       get: someClass => container.resolve(someClass),
     },

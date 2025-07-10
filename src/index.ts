@@ -4,11 +4,8 @@ import 'dotenv/config'
 import cors from 'cors'
 import { AppDataSource } from './database/data-source'
 import { createServer } from 'http'
-import { expressMiddleware } from '@apollo/server/express4'
-import { apolloServer } from './helper/apollo-server'
+import { yogaServer } from './helper/yoga-server'
 import { schemaHelper } from './helper/schema'
-import { WebSocketServer } from 'ws'
-import { useServer } from 'graphql-ws/use/ws'
 import { container } from 'tsyringe'
 import { TraccarService } from './services/traccar.service'
 import { redis } from './config/redis'
@@ -41,19 +38,49 @@ export const server = async () => {
   const app = express()
   const httpServer = createServer(app)
   const schema = await schemaHelper()
-  const wsServer = new WebSocketServer({
-    server: httpServer,
-    path: '/graphql',
-  })
+  // const wsServer = new WebSocketServer({
+  //   server: httpServer,
+  //   path: '/graphql',
+  // })
 
-  const serverCleanup = useServer(
-    {
-      schema,
-    },
-    wsServer,
-  )
+  // const serverCleanup = useServer(
+  //   {
+  //     schema,
+  //   },
+  //   wsServer,
+  // )
 
-  const server = await apolloServer(httpServer, schema, serverCleanup)
+  const yoga = await yogaServer(schema)
+
+  // const wsServer = new WebSocketServer({
+  //   server: httpServer,
+  //   path: yoga.graphqlEndpoint,
+  // })
+
+  // useServer(
+  //   {
+  //     schema,
+  //     context: {
+  //       poolingService,
+  //     },
+  //     onSubscribe: async (ctx, msg: any) => {
+  //       const { operationName } = msg.payload
+  //       let topic = ''
+  //       if (operationName === 'POSITION_UPDATE') {
+  //         topic = `POSITION_UPDATE`
+  //         console.log(`[WS onSubscribe] Pengguna terhubung ke topik global: ${topic}`)
+  //       }
+  //       await poolingService.addSubscriber(topic)
+  //     },
+  //     onComplete: async (ctx, msg: any) => {
+  //       const { operationName } = msg.payload
+  //       let topic = ''
+  //       if (operationName === 'POSITION_UPDATE') topic = `POSITION_UPDATE`
+  //       await poolingService.removeSubscriber(topic)
+  //     },
+  //   },
+  //   wsServer,
+  // )
 
   app.use(express.json())
   app.use(
@@ -69,7 +96,9 @@ export const server = async () => {
     next()
   })
 
-  app.use('/graphql', expressMiddleware(server) as unknown as express.RequestHandler)
+  app.use('/graphql', yoga)
+
+  // app.use('/graphql', expressMiddleware(server) as unknown as express.RequestHandler)
 
   await AppDataSource.initialize()
 

@@ -1,4 +1,4 @@
-import { Field, Float, ObjectType } from 'type-graphql'
+import { Field, Float, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class Device {
@@ -11,12 +11,17 @@ export class Device {
   @Field(() => String, { nullable: true })
   uniqueId?: string
 
-  @Field(() => String)
-  status?: string
+  @Field(() => String, { nullable: true })
+  routeId?: string
 
-  @Field(() => String)
-  lastUpdate?: Date
+  @Field(() => Int, { nullable: true })
+  capacity?: number
 
+  // @Field(() => String)
+  // status?: string
+
+  // @Field(() => String)
+  // lastUpdate?: Date
   @Field(() => String, { nullable: true })
   category?: string
 

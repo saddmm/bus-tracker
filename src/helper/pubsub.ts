@@ -1,6 +1,7 @@
-import { RedisPubSub } from 'graphql-redis-subscriptions'
 import Redis from 'ioredis'
 import 'dotenv/config'
+import { createPubSub } from 'graphql-yoga'
+import { createRedisEventTarget } from '@graphql-yoga/redis-event-target'
 
 const options = {
   host: process.env.REDIS_HOST || 'localhost',
@@ -13,20 +14,9 @@ const options = {
 const publisher = new Redis(options)
 const subscriber = new Redis(options)
 
-publisher.on('connect', () => {
-  console.log('✅ Klien Publisher Redis terhubung.')
-})
-subscriber.on('connect', () => {
-  console.log('✅ Klien Subscriber Redis terhubung.')
-})
-publisher.on('error', err => {
-  console.error('❌ Gagal menghubungkan klien Publisher Redis:', err)
-})
-subscriber.on('error', err => {
-  console.error('❌ Gagal menghubungkan klien Subscriber Redis:', err)
+const eventTarget = createRedisEventTarget({
+  publishClient: publisher,
+  subscribeClient: subscriber,
 })
 
-export const pubSub = new RedisPubSub({
-  publisher,
-  subscriber,
-})
+export const pubSub = createPubSub({ eventTarget })
