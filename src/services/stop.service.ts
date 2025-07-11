@@ -1,7 +1,10 @@
 import { Stop } from '@/database/entities/stop.entity'
+import type { RouteWithStop } from '@/types/object/route.object'
 import type { StopInput } from '@/types/params/route.param'
-import { injectable } from 'tsyringe'
+import { inject, injectable } from 'tsyringe'
 import { In } from 'typeorm'
+import { RedisService } from './redis.service'
+import { Device } from '@/types/object/device.object'
 
 interface ProcessedStop {
   stopId: string
@@ -10,6 +13,11 @@ interface ProcessedStop {
 
 @injectable()
 export class StopService {
+  constructor(
+    @inject(RedisService)
+    private readonly redisService: RedisService,
+  ) {}
+
   async stopSequence(stops: StopInput[]) {
     const isSequenceProvided = stops.length > 0 && stops[0]?.sequence != null
 
@@ -53,5 +61,15 @@ export class StopService {
       .filter(stop => stop !== undefined) as Stop[]
 
     return orderedStops
+  }
+
+  async stopListForBus(busId: string) {
+    const bus: Device = await this.redisService.get('device', busId)
+    const routeId = bus.routeId
+    if (!bus && !routeId) return null
+
+    const stopsLonLat = await this.redisService.get('longlat', routeId!)
+
+    return stopsLonLat
   }
 }

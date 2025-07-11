@@ -1,46 +1,52 @@
+import { redis } from '@/config/redis'
 import { pubSub } from './pubsub'
-
-const topicSubscriberCount = new Map<string, number>()
 
 interface ManageAsyncIteratorOptions {
   onStart?: () => void | Promise<void>
   onStop?: () => void | Promise<void>
 }
 
-export function manageAsyncIterator<T>(
+export async function manageAsyncIterator<T>(
   topic: string,
   options: ManageAsyncIteratorOptions,
-): AsyncIterableIterator<T> {
-  const currentCount = topicSubscriberCount.get(topic) ?? 0
+): Promise<AsyncIterableIterator<T>> {
+  const countKey = `subscriber:count:${topic}`
 
-  if (currentCount === 0) {
+  const newCount = await redis.incr(countKey)
+  if (newCount === 1) {
     console.log(`Starting async iterator for topic: ${topic}`)
-    options.onStart?.()
+    await options.onStart?.()
   }
 
-  topicSubscriberCount.set(topic, currentCount + 1)
-
-  const source = pubSub.asyncIterableIterator<T>(topic) as AsyncIterableIterator<T>
+  const source = pubSub.subscribe(topic)
 
   const manageIterator: AsyncIterableIterator<T> = {
     next() {
       return source.next()
     },
 
-    return() {
-      const currentCount = topicSubscriberCount.get(topic) ?? 0
-      if (currentCount > 1) {
-        topicSubscriberCount.set(topic, currentCount - 1)
-      } else {
-        console.log(`Stopping async iterator for topic: ${topic}`)
-        options.onStop?.()
-        topicSubscriberCount.delete(topic)
+    async return() {
+      const remainingCount = await redis.decr(countKey)
+
+      if (remainingCount === 0) {
+        console.log('Stopping')
+        await options.onStop?.()
+        await redis.del(countKey)
       }
 
       return source.return?.() ?? Promise.resolve({ done: true, value: undefined })
     },
 
     async throw(error) {
+      console.error(`Error in async iterator for topic: ${topic}`, error)
+
+      const remainingCount = await redis.decr(countKey)
+      if (remainingCount <= 0) {
+        console.log(`Stopping async iterator for topic (on error): ${topic}`)
+        await options.onStop?.()
+        await redis.del(countKey)
+      }
+
       return Promise.reject(error)
     },
 

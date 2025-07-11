@@ -30,11 +30,11 @@ export class Route extends BaseEntity {
   operation_day!: number[]
 
   @Field(() => String)
-  @Column({ type: 'time' })
+  @Column({ type: 'time', default: '05.00' })
   start_hour!: string
 
   @Field(() => String)
-  @Column({ type: 'time' })
+  @Column({ type: 'time', default: '22.00' })
   end_hour!: string
 
   @Field(() => [Bus], { nullable: true })

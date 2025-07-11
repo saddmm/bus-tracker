@@ -7,13 +7,13 @@ import { Stop } from '@/database/entities/stop.entity'
 import { StopService } from './stop.service'
 import type { RouteWithStop } from '@/types/object/route.object'
 import { RedisService } from './redis.service'
-import type { DevicePosition } from '@/types/object/device.object'
 import { MapsService } from './maps.service'
+import { redis } from '@/config/redis'
 
-interface Position {
-  latitude: number
-  longitude: number
-}
+// interface Position {
+//   latitude: number
+//   longitude: number
+// }
 
 @injectable()
 export class RouteService {
@@ -97,6 +97,7 @@ export class RouteService {
       desiredStopsWithSeq.sort((a, b) => a.sequence - b.sequence).map(s => s.stopId),
     )
     const locations = finalOrderedStops.map(s => [s.location.longitude, s.location.latitude])
+    await redis.set(`longlat:${route.id}`, JSON.stringify(locations))
     const polyline = await this.mapsService.createPolyline(locations)
     route.polyline = polyline
     await route.save()
@@ -155,12 +156,5 @@ export class RouteService {
     }
 
     return routeData
-  }
-
-  async stopStatus(busPosition: DevicePosition, routeId: string) {
-    const route = await this.routeQueryById(routeId)
-    if (!route || !route.stops) return null
-
-    const { stops } = route
   }
 }

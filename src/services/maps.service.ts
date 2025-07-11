@@ -40,6 +40,7 @@ export class MapsService {
     const result = await this.axiosInstance.post('matrix', {
       from_points: from_points,
       to_points: to_points,
+      out_arrays: ['times', 'distances'],
       vehicle: 'car',
     })
 

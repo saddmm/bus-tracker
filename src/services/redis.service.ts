@@ -1,6 +1,8 @@
 import { redis } from '@/config/redis'
 import 'dotenv/config'
+import { injectable } from 'tsyringe'
 
+@injectable()
 export class RedisService {
   async setAll(key: string, values: any[]): Promise<void> {
     const multi = redis.multi()

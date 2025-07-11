@@ -12,6 +12,7 @@ import { redis } from './config/redis'
 import type { Consumer, Producer } from 'kafkajs'
 import { kafka } from './config/kafka'
 import { PositionWorkerService } from './services/worker/positionWorker.service'
+import { EtaService } from './services/worker/eta.service'
 
 export const server = async () => {
   const port = process.env.PORT || 4000
@@ -31,56 +32,17 @@ export const server = async () => {
 
   const traccarService = container.resolve(TraccarService)
   const workerService = container.resolve(PositionWorkerService)
+  const etaService = container.resolve(EtaService)
 
   await workerService.start()
   await traccarService.connectToWebSocket()
+  etaService.startCalculation()
 
   const app = express()
   const httpServer = createServer(app)
   const schema = await schemaHelper()
-  // const wsServer = new WebSocketServer({
-  //   server: httpServer,
-  //   path: '/graphql',
-  // })
-
-  // const serverCleanup = useServer(
-  //   {
-  //     schema,
-  //   },
-  //   wsServer,
-  // )
 
   const yoga = await yogaServer(schema)
-
-  // const wsServer = new WebSocketServer({
-  //   server: httpServer,
-  //   path: yoga.graphqlEndpoint,
-  // })
-
-  // useServer(
-  //   {
-  //     schema,
-  //     context: {
-  //       poolingService,
-  //     },
-  //     onSubscribe: async (ctx, msg: any) => {
-  //       const { operationName } = msg.payload
-  //       let topic = ''
-  //       if (operationName === 'POSITION_UPDATE') {
-  //         topic = `POSITION_UPDATE`
-  //         console.log(`[WS onSubscribe] Pengguna terhubung ke topik global: ${topic}`)
-  //       }
-  //       await poolingService.addSubscriber(topic)
-  //     },
-  //     onComplete: async (ctx, msg: any) => {
-  //       const { operationName } = msg.payload
-  //       let topic = ''
-  //       if (operationName === 'POSITION_UPDATE') topic = `POSITION_UPDATE`
-  //       await poolingService.removeSubscriber(topic)
-  //     },
-  //   },
-  //   wsServer,
-  // )
 
   app.use(express.json())
   app.use(

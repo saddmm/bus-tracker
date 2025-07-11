@@ -20,18 +20,8 @@ export class PositionWorkerService {
       fromBeginning: true,
     })
 
-    // await this.consumer.subscribe({
-    //   topic: 'DEVICE',
-    //   fromBeginning: true,
-    // })
-
     await this.consumer.run({
       eachMessage: async ({ message, topic }: EachMessagePayload) => {
-        // if (topic === 'DEVICE') {
-        //   if (!message || !message.value) return
-        //   const device: Device = JSON.parse(message.value.toString())
-        //   await this.busService.addBus([device])
-        // } else
         if (topic === 'POSITION_UPDATE') {
           if (!message || !message.value) return
           const position: DevicePosition = JSON.parse(message.value.toString())
@@ -39,8 +29,6 @@ export class PositionWorkerService {
           if (!position.deviceId) return
 
           const device = await this.busService.getBus(position.deviceId.toString())
-
-          // const matchDevice = devices.find(device => device.id === position.deviceId)
 
           const devicePosition = {
             ...device,
