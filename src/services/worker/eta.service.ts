@@ -28,7 +28,6 @@ export class EtaService {
     const activeBuses = await redis.sMembers(ACTIVE_BUSES_KEY)
     const activeStops = await redis.sMembers(ACTIVE_STOP_KEY)
 
-    console.log(activeBuses)
     if (activeBuses.length === 0 && activeStops.length === 0) {
       return
     }
