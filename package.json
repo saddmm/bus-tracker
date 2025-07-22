@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "@apollo/server": "^4.12.2",
+    "@googlemaps/google-maps-services-js": "^3.4.2",
     "@graphql-yoga/plugin-graphql-sse": "^3.14.0",
     "@graphql-yoga/redis-event-target": "^3.0.3",
     "@graphql-yoga/subscription": "^5.0.5",

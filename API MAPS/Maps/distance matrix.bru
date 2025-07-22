@@ -1,0 +1,33 @@
+meta {
+  name: distance matrix
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://maps.googleapis.com/maps/api/distancematrix/json?key={{API_KEY}}
+  body: json
+  auth: none
+}
+
+params:query {
+  key: {{API_KEY}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "origins": [
+      { "lat": -7.4447, "lng": 112.7172 }
+    ],
+    "destinations": [
+      { "lat": -7.3790, "lng": 112.7845 },
+      { "lat": -7.4560, "lng": 112.7130 }
+    ],
+    "travelMode": "DRIVING",
+    "language": "id"
+  }
+}

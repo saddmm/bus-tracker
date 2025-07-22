@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   type Relation,
 } from 'typeorm'
-import { LongLat } from '../../types/object/longlat.object'
+import { LatLong } from '../../types/object/latlong.object'
 import { RouteStop } from './route-stop.entity'
 
 @ObjectType()
@@ -21,9 +21,9 @@ export class Stop extends BaseEntity {
   @Column({ type: 'varchar', unique: true })
   name!: string
 
-  @Field(() => LongLat)
+  @Field(() => LatLong)
   @Column({ type: 'json' })
-  location!: LongLat
+  location!: LatLong
 
   @Field(() => Boolean)
   @Column({ type: 'boolean', default: true })

@@ -2,12 +2,14 @@ import { injectable } from 'tsyringe'
 import 'dotenv/config'
 import type { AxiosInstance } from 'axios'
 import axios from 'axios'
+import type { Client } from '@googlemaps/google-maps-services-js'
 
 @injectable()
 export class MapsService {
-  private axiosInstance: AxiosInstance
+  private graphHopperInstance: AxiosInstance
+  private googleMapsClient: Client
   constructor() {
-    this.axiosInstance = axios.create({
+    this.graphHopperInstance = axios.create({
       baseURL: process.env.GRAPHHOPPER_HOST,
       params: {
         key: process.env.API_KEY_GRAPHHOPPER,
@@ -20,7 +22,7 @@ export class MapsService {
 
   async createPolyline(locations: number[][]) {
     try {
-      const response = await this.axiosInstance.post('/route', {
+      const response = await this.graphHopperInstance.post('/route', {
         points: locations,
         profile: 'car',
         locale: 'id',
@@ -36,14 +38,9 @@ export class MapsService {
     }
   }
 
-  async distanceMatrix(from_points: number[][], to_points: number[][]) {
-    const result = await this.axiosInstance.post('matrix', {
-      from_points: from_points,
-      to_points: to_points,
-      out_arrays: ['times', 'distances'],
-      vehicle: 'car',
-    })
+  async getPolyline(locations: ) {
+    const response = await this.googleMapsClient.directions({
 
-    return result.data
+    })
   }
 }

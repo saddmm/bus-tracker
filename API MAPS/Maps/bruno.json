@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Maps",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

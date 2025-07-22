@@ -1,6 +1,10 @@
 import { type GraphQLSchema } from 'graphql'
 import { createYoga } from 'graphql-yoga'
 
+const host = process.env.HOST
+
+const graphqlUrl = host?.startsWith('https') ? host : `${host}:${process.env.PORT}`
+
 export const yogaServer = async (schema: GraphQLSchema) => {
   const yoga = createYoga({
     renderGraphiQL: () => {
@@ -15,7 +19,7 @@ export const yogaServer = async (schema: GraphQLSchema) => {
             target: "#sandbox",
             // Pass through your server href if you are embedding on an endpoint.
             // Otherwise, you can pass whatever endpoint you want Sandbox to start up with here.
-            initialEndpoint: "http://localhost:3050/graphql",
+            initialEndpoint: "${graphqlUrl}/graphql",
           });
           // advanced options: https://www.apollographql.com/docs/studio/explorer/sandbox#embedding-sandbox
           </script>

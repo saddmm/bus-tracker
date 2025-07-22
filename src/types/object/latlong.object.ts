@@ -1,10 +1,10 @@
 import { Field, Float, ObjectType } from 'type-graphql'
 
 @ObjectType()
-export class LongLat {
+export class LatLong {
   @Field(() => Float)
-  longitude!: number
+  lat!: number
 
   @Field(() => Float)
-  latitude!: number
+  lng!: number
 }

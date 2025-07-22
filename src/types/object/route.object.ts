@@ -1,5 +1,5 @@
 import { Field, Float, Int, ObjectType } from 'type-graphql'
-import { LongLat } from './longlat.object'
+import { LatLong } from './latlong.object'
 
 @ObjectType()
 export class RouteWithStop {
@@ -33,8 +33,8 @@ class stopRoute {
   @Field(() => String, { nullable: true })
   name?: string
 
-  @Field(() => LongLat, { nullable: true })
-  location?: LongLat
+  @Field(() => LatLong, { nullable: true })
+  location?: LatLong
 
   @Field(() => Float, { nullable: true })
   sequence?: number
