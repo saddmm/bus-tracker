@@ -9,6 +9,7 @@ import type { RouteWithStop } from '@/types/object/route.object'
 import { RedisService } from './redis.service'
 import { MapsService } from './maps.service'
 import { redis } from '@/config/redis'
+import type { LatLong } from '@/types/object/latlong.object'
 
 // interface Position {
 //   latitude: number
@@ -96,10 +97,13 @@ export class RouteService {
     const finalOrderedStops = await this.stopService.findStopsInOrder(
       desiredStopsWithSeq.sort((a, b) => a.sequence - b.sequence).map(s => s.stopId),
     )
-    const locations = finalOrderedStops.map(s => [s.location.longitude, s.location.latitude])
+    const locations: LatLong[] = finalOrderedStops.map(s => ({
+      lat: s.location.lat,
+      lng: s.location.lng,
+    }))
     await redis.set(`longlat:${route.id}`, JSON.stringify(locations))
-    const polyline = await this.mapsService.createPolyline(locations)
-    route.polyline = polyline
+    const polyline = await this.mapsService.getPolyline(locations)
+    route.polyline = polyline!
     await route.save()
 
     await this.updateRouteCache(route)

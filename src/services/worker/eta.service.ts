@@ -7,6 +7,7 @@ import { formatLongLat } from '@/helper/longLat'
 import { MapsService } from '../maps.service'
 import type { RouteWithStop } from '@/types/object/route.object'
 import { pubSub } from '@/helper/pubsub'
+import { LatLong } from '@/types/object/latlong.object'
 
 @injectable()
 export class EtaService {
@@ -34,10 +35,12 @@ export class EtaService {
 
     for (const busId of activeBuses) {
       const bus: Device = await this.redisService.get('position', busId)
-      const from_points = formatLongLat({
-        latitude: bus.position!.latitude!,
-        longitude: bus.position!.longitude!,
-      })
+      const from_points: LatLong[] = [
+        {
+          lat: Number(bus.position!.latitude),
+          lng: Number(bus.position!.longitude),
+        },
+      ]
       const to_points = await this.redisService.get('longlat', bus.routeId!)
       console.log('to_points', to_points)
       if (to_points.length === 0) {

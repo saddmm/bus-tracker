@@ -1,10 +1,9 @@
 import { Stop } from '@/database/entities/stop.entity'
-import type { RouteWithStop } from '@/types/object/route.object'
 import type { StopInput } from '@/types/params/route.param'
 import { inject, injectable } from 'tsyringe'
 import { In } from 'typeorm'
 import { RedisService } from './redis.service'
-import { Device } from '@/types/object/device.object'
+import type { Device } from '@/types/object/device.object'
 
 interface ProcessedStop {
   stopId: string

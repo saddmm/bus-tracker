@@ -36,7 +36,7 @@ export const server = async () => {
 
   await workerService.start()
   await traccarService.connectToWebSocket()
-  etaService.startCalculation()
+  // etaService.startCalculation()
 
   const app = express()
   const httpServer = createServer(app)
