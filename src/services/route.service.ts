@@ -8,7 +8,6 @@ import { StopService } from './stop.service'
 import type { RouteWithStop } from '@/types/object/route.object'
 import { RedisService } from './redis.service'
 import { MapsService } from './maps.service'
-import { redis } from '@/config/redis'
 import type { LatLong } from '@/types/object/latlong.object'
 
 // interface Position {
@@ -101,7 +100,7 @@ export class RouteService {
       lat: s.location.lat,
       lng: s.location.lng,
     }))
-    await redis.set(`longlat:${route.id}`, JSON.stringify(locations))
+    // await this.redisService.set(`longlat:${route.id}`, JSON.stringify(locations))
     const polyline = await this.mapsService.getPolyline(locations)
     route.polyline = polyline!
     await route.save()

@@ -8,7 +8,7 @@ export class RedisService {
     const multi = redis.multi()
     values.forEach((value: any) => {
       const keys = `${key}:${value.id}`
-      multi.set(keys, JSON.stringify(value))
+      multi.json.set(keys, '.', value)
       multi.sAdd(`${key}s:all`, value.id.toString())
     })
 
@@ -21,9 +21,7 @@ export class RedisService {
       return null
     }
     const allKeys = ids.map(id => `${key}:${id}`)
-    const allDataStrings = await redis.mGet(allKeys)
-
-    const result = allDataStrings.map((data: any) => JSON.parse(data || '{}'))
+    const result = await redis.mGet(allKeys)
 
     return result
   }
@@ -34,13 +32,13 @@ export class RedisService {
       return null
     }
 
-    return JSON.parse(data)
+    return data
   }
 
   async set(key: string, value: any): Promise<void | Error> {
     try {
       const multi = redis.multi()
-      multi.set(`${key}:${value.id}`, JSON.stringify(value))
+      multi.json.set(`${key}:${value.id}`, '.', value)
       multi.sAdd(`${key}s:all`, value.id.toString())
       await multi.exec()
     } catch (err: any) {
