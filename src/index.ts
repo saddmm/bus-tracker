@@ -4,7 +4,7 @@ import 'dotenv/config'
 import cors from 'cors'
 import { AppDataSource } from './database/data-source'
 import { createServer } from 'http'
-import { yogaServer } from './helper/yoga-server'
+import { yogaServer, renderApolloSandboxPage } from './helper/yoga-server'
 import { schemaHelper } from './helper/schema'
 import { container } from 'tsyringe'
 import { TraccarService } from './services/traccar.service'
@@ -12,7 +12,7 @@ import { redis } from './config/redis'
 import type { Consumer, Producer } from 'kafkajs'
 import { kafka } from './config/kafka'
 import { PositionWorkerService } from './services/worker/positionWorker.service'
-import { EtaService } from './services/worker/eta.service'
+// import { EtaService } from './services/worker/eta.service'
 
 export const server = async () => {
   const port = process.env.PORT || 4000
@@ -32,15 +32,15 @@ export const server = async () => {
 
   const traccarService = container.resolve(TraccarService)
   const workerService = container.resolve(PositionWorkerService)
-  const etaService = container.resolve(EtaService)
+  // const etaService = container.resolve(EtaService)
 
   await workerService.start()
   await traccarService.connectToWebSocket()
   // etaService.startCalculation()
 
   const app = express()
-  const httpServer = createServer(app)
   const schema = await schemaHelper()
+  const httpServer = createServer(app)
 
   const yoga = await yogaServer(schema)
 
@@ -58,14 +58,20 @@ export const server = async () => {
     next()
   })
 
-  app.use('/graphql', yoga)
+  // Apollo Sandbox route with subscription support
+  app.get('/sandbox', (req, res) => {
+    res.setHeader('Content-Type', 'text/html')
+    res.send(renderApolloSandboxPage())
+  })
 
-  // app.use('/graphql', expressMiddleware(server) as unknown as express.RequestHandler)
+  app.use('/graphql', yoga)
 
   await AppDataSource.initialize()
 
   httpServer.listen(port, () => {
     console.log(`🚀 Server ready at http://localhost:${process.env.PORT || 4000}/graphql`)
+    console.log(`🔗 Apollo Sandbox at http://localhost:${process.env.PORT || 4000}/sandbox`)
+    console.log(`🔌 WebSocket subscriptions at ws://localhost:${process.env.PORT || 4000}/graphql`)
   })
 }
 

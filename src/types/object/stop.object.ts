@@ -1,9 +1,10 @@
 import { Stop } from '@/database/entities/stop.entity'
-import { Field, ObjectType } from 'type-graphql'
+import { Field, Float, ObjectType } from 'type-graphql'
 
 enum STATUS_STOP {
   UPCOMING = 'upcoming',
   PASSED = 'passed',
+  SKIPPED = 'skipped',
 }
 
 @ObjectType()
@@ -12,8 +13,14 @@ export class StopEta extends Stop {
   status?: STATUS_STOP
 
   @Field(() => String, { nullable: true })
-  eta?: string
+  distanceText?: string
 
   @Field(() => String, { nullable: true })
-  distance?: string
+  etaText?: string
+
+  @Field(() => Float, { nullable: true })
+  distance?: number
+
+  @Field(() => Float, { nullable: true })
+  eta?: number
 }

@@ -22,24 +22,28 @@ export class PositionWorkerService {
 
     await this.consumer.run({
       eachMessage: async ({ message, topic }: EachMessagePayload) => {
-        if (topic === 'POSITION_UPDATE') {
-          if (!message || !message.value) return
-          const position: DevicePosition = JSON.parse(message.value.toString())
+        try {
+          if (topic === 'POSITION_UPDATE') {
+            if (!message || !message.value) return
+            const position: DevicePosition = JSON.parse(message.value.toString())
 
-          if (!position.deviceId) return
+            if (!position.deviceId) return
 
-          const device = await this.busService.getBus(position.deviceId.toString())
+            const device = await this.busService.getBus(position.deviceId.toString())
 
-          const devicePosition = {
-            ...device,
-            position: {
-              ...position,
-              timestamp: new Date().toISOString(),
-            },
+            const devicePosition = {
+              ...device,
+              position: {
+                ...position,
+                timestamp: new Date().toISOString(),
+              },
+            }
+
+            await this.busService.addBusLocations([devicePosition])
+            pubSub.publish(`POSITION_UPDATE`, [devicePosition])
           }
-
-          await this.busService.addBusLocations([devicePosition])
-          pubSub.publish(`POSITION_UPDATE`, [devicePosition])
+        } catch (error: any) {
+          console.error(`Error processing message from ${topic}:`, error)
         }
       },
     })

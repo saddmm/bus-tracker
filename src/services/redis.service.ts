@@ -21,13 +21,13 @@ export class RedisService {
       return null
     }
     const allKeys = ids.map(id => `${key}:${id}`)
-    const result = await redis.mGet(allKeys)
+    const result = await redis.json.mGet(allKeys, '.')
 
     return result
   }
 
   async get(key: string, id: string): Promise<any> {
-    const data = await redis.get(`${key}:${id}`)
+    const data = await redis.json.get(`${key}:${id}`)
     if (!data) {
       return null
     }
